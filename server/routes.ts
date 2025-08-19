@@ -22,15 +22,127 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Social Account routes
+  // Ayrshare User Profile Management
+  app.post('/api/ayrshare/create-profile', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Check if user already has an Ayrshare profile
+      if (user.ayrshareProfileKey) {
+        return res.json({ 
+          profileKey: user.ayrshareProfileKey,
+          message: "Profile already exists" 
+        });
+      }
+
+      // Create Ayrshare profile with user's name
+      const displayName = user.firstName && user.lastName 
+        ? `${user.firstName} ${user.lastName}` 
+        : user.email;
+      
+      const ayrshareResponse = await ayrshareApi.createUserProfile(
+        displayName,
+        user.profileImageUrl ?? undefined
+      );
+
+      if (ayrshareResponse.status === 'success' && ayrshareResponse.profileKey) {
+        // Store the profile key in our database
+        await storage.updateUserAyrshareProfile(userId, ayrshareResponse.profileKey);
+        
+        res.json({
+          profileKey: ayrshareResponse.profileKey,
+          message: "Profile created successfully"
+        });
+      } else {
+        res.status(400).json({ 
+          message: "Failed to create Ayrshare profile",
+          error: ayrshareResponse.error 
+        });
+      }
+    } catch (error) {
+      console.error("Error creating Ayrshare profile:", error);
+      res.status(500).json({ message: "Failed to create Ayrshare profile" });
+    }
+  });
+
+  app.post('/api/ayrshare/generate-jwt', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user || !user.ayrshareProfileKey) {
+        return res.status(404).json({ message: "User profile not found" });
+      }
+
+      const jwtResponse = await ayrshareApi.generateJWT(
+        user.ayrshareProfileKey,
+        req.hostname // Use current domain
+      );
+
+      if (jwtResponse.status === 'success' && jwtResponse.url) {
+        res.json({
+          linkingUrl: jwtResponse.url,
+          message: "JWT generated successfully"
+        });
+      } else {
+        res.status(400).json({ 
+          message: "Failed to generate JWT",
+          error: jwtResponse.error 
+        });
+      }
+    } catch (error) {
+      console.error("Error generating JWT:", error);
+      res.status(500).json({ message: "Failed to generate JWT" });
+    }
+  });
+
+  app.get('/api/ayrshare/social-accounts', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user || !user.ayrshareProfileKey) {
+        return res.json([]); // Return empty array if no profile
+      }
+
+      const profileResponse = await ayrshareApi.getProfileSocialAccounts(user.ayrshareProfileKey);
+      
+      if (profileResponse.status === 'success' && profileResponse.profiles) {
+        res.json(profileResponse.profiles);
+      } else {
+        res.json([]);
+      }
+    } catch (error) {
+      console.error("Error fetching social accounts:", error);
+      res.json([]); // Return empty array on error
+    }
+  });
+
+  // Social Account routes (now redirects to Ayrshare)
   app.get('/api/social-accounts', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const accounts = await storage.getSocialAccounts(userId);
-      res.json(accounts);
+      const user = await storage.getUser(userId);
+      
+      if (!user || !user.ayrshareProfileKey) {
+        return res.json([]); // Return empty array if no profile
+      }
+
+      const profileResponse = await ayrshareApi.getProfileSocialAccounts(user.ayrshareProfileKey);
+      
+      if (profileResponse.status === 'success' && profileResponse.profiles) {
+        res.json(profileResponse.profiles);
+      } else {
+        res.json([]);
+      }
     } catch (error) {
       console.error("Error fetching social accounts:", error);
-      res.status(500).json({ message: "Failed to fetch social accounts" });
+      res.json([]); // Return empty array on error
     }
   });
 
@@ -118,6 +230,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If publishing immediately or scheduling
       if (postData.status === 'published' || postData.status === 'scheduled') {
         try {
+          // Get user's Ayrshare profile
+          const user = await storage.getUser(userId);
+          if (!user || !user.ayrshareProfileKey) {
+            return res.status(400).json({ 
+              message: "Please connect your social accounts first" 
+            });
+          }
+
           const ayrshareData = {
             post: postData.content,
             platforms: postData.platforms,
@@ -127,7 +247,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }),
           };
 
-          const ayrshareResponse = await ayrshareApi.publishPost(ayrshareData);
+          const ayrshareResponse = await ayrshareApi.postForUser(user.ayrshareProfileKey, ayrshareData);
           
           if (ayrshareResponse.status === 'success') {
             // Update post with Ayrshare ID

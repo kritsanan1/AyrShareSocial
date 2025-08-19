@@ -19,6 +19,27 @@ interface AyrshareResponse {
   }>;
 }
 
+interface CreateProfileResponse {
+  status: string;
+  profileKey?: string;
+  error?: string;
+}
+
+interface GenerateJWTResponse {
+  status: string;
+  url?: string;
+  error?: string;
+}
+
+interface UserProfileResponse {
+  status: string;
+  profiles?: Array<{
+    profileKey: string;
+    title?: string;
+    profileImg?: string;
+  }>;
+}
+
 interface ProfileResponse {
   status: string;
   profiles?: Array<{
@@ -115,6 +136,67 @@ export class AyrshareApi {
     return await this.makeRequest('/upload', {
       method: 'POST',
       body: JSON.stringify({ url: mediaUrl }),
+    });
+  }
+
+  // User Profile Management for Multiple Users
+  async createUserProfile(title?: string, profileImg?: string): Promise<CreateProfileResponse> {
+    const payload: any = {};
+    if (title) payload.title = title;
+    if (profileImg) payload.profileImg = profileImg;
+
+    return await this.makeRequest('/profiles/profile', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async generateJWT(profileKey: string, domain?: string): Promise<GenerateJWTResponse> {
+    const payload: any = { profileKey };
+    if (domain) payload.domain = domain;
+
+    return await this.makeRequest('/profiles/generateJWT', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async getUserProfiles(): Promise<UserProfileResponse> {
+    return await this.makeRequest('/profiles');
+  }
+
+  async deleteUserProfile(profileKey: string): Promise<{ status: string }> {
+    return await this.makeRequest(`/profiles/profile/${profileKey}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getProfileSocialAccounts(profileKey: string): Promise<ProfileResponse> {
+    return await this.makeRequest(`/profiles/${profileKey}`, {
+      headers: {
+        'Authorization': `Bearer ${this.config.apiKey}`,
+        'Profile-Key': profileKey,
+        'Content-Type': 'application/json',
+      },
+    });
+  }
+
+  async postForUser(profileKey: string, postData: PostData): Promise<AyrshareResponse> {
+    const payload = {
+      post: postData.post,
+      platforms: postData.platforms,
+      ...(postData.mediaUrls && { mediaUrls: postData.mediaUrls }),
+      ...(postData.scheduleDate && { scheduleDate: postData.scheduleDate }),
+    };
+
+    return await this.makeRequest('/post', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.config.apiKey}`,
+        'Profile-Key': profileKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
     });
   }
 }

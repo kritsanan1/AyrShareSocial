@@ -73,6 +73,18 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async updateUserAyrshareProfile(userId: string, ayrshareProfileKey: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ 
+        ayrshareProfileKey,
+        updatedAt: new Date() 
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
   // Social Account operations
   async getSocialAccounts(userId: string): Promise<SocialAccount[]> {
     return await db

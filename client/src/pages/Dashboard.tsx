@@ -5,6 +5,7 @@ import Sidebar from "@/components/Sidebar";
 import StatsCard from "@/components/StatsCard";
 import ConnectedAccount from "@/components/ConnectedAccount";
 import ActivityItem from "@/components/ActivityItem";
+import SocialAccountConnector from "@/components/SocialAccountConnector";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -168,23 +169,23 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Connected Accounts */}
               <div className="lg:col-span-2">
-                <Card className="shadow-soft border-gray-100 mb-8">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle>Connected Accounts</CardTitle>
-                      <Button 
-                        variant="ghost" 
-                        className="text-sage hover:text-sage/80"
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Connect Account
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {socialAccounts.length > 0 ? (
-                        socialAccounts.map((account: any) => (
+                {socialAccounts.length > 0 ? (
+                  <Card className="shadow-soft border-gray-100 mb-8">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle>Connected Accounts</CardTitle>
+                        <Button 
+                          variant="ghost" 
+                          className="text-sage hover:text-sage/80"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Connect Account
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {socialAccounts.map((account: any) => (
                           <ConnectedAccount
                             key={account.id}
                             platform={account.platform}
@@ -192,17 +193,15 @@ export default function Dashboard() {
                             followers={account.followerCount}
                             isConnected={account.isActive}
                           />
-                        ))
-                      ) : (
-                        <div className="col-span-2 text-center py-8 text-gray-500">
-                          <Share className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                          <p>No social accounts connected yet.</p>
-                          <p className="text-sm">Connect your accounts to get started.</p>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="mb-8">
+                    <SocialAccountConnector />
+                  </div>
+                )}
 
                 {/* Recent Activity */}
                 <Card className="shadow-soft border-gray-100">
