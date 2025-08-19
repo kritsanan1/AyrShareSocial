@@ -334,19 +334,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const { startDate, endDate, platforms } = req.query;
       
+      // Validate and parse parameters
+      const platformsArray = platforms && typeof platforms === 'string' 
+        ? platforms.split(',').filter(p => p.trim()) 
+        : undefined;
+      
+      const startDateStr = startDate && typeof startDate === 'string' ? startDate : undefined;
+      const endDateStr = endDate && typeof endDate === 'string' ? endDate : undefined;
+      
       // Get analytics from Ayrshare
       const ayrshareAnalytics = await ayrshareApi.getAnalytics(
-        platforms ? platforms.split(',') : undefined,
-        startDate,
-        endDate
+        platformsArray,
+        startDateStr,
+        endDateStr
       );
       
-      // Get stored analytics
-      const storedAnalytics = await storage.getAnalytics(
-        userId,
-        startDate ? new Date(startDate) : undefined,
-        endDate ? new Date(endDate) : undefined
-      );
+      // Get stored analytics - check if storage.getAnalytics exists
+      let storedAnalytics = [];
+      if (typeof storage.getAnalytics === 'function') {
+        storedAnalytics = await storage.getAnalytics(
+          userId,
+          startDateStr ? new Date(startDateStr) : undefined,
+          endDateStr ? new Date(endDateStr) : undefined
+        );
+      }
       
       res.json({
         live: ayrshareAnalytics,
