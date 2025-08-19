@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +9,9 @@ import Sidebar from '@/components/Sidebar';
 import { useAuth } from '@/hooks/useAuth';
 import { apiRequest } from '@/lib/queryClient';
 import { Download, Calendar, Filter, TrendingUp, Heart, Target, Users, Eye, MessageCircle, Share, BarChart3 } from 'lucide-react';
+
+// Assuming MobileAnalyticsDashboard is correctly imported from "@/components/MobileAnalyticsDashboard"
+// and the necessary meta tag and API routes/services are configured elsewhere.
 
 const Analytics = () => {
   const { user } = useAuth();
@@ -179,7 +181,7 @@ const Analytics = () => {
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="performance">Performance</TabsTrigger>
                 <TabsTrigger value="engagement">Engagement</TabsTrigger>
-                <TabsTrigger value="growth">Growth</TabsTrigger>
+                <TabsTrigger value="mobile">Mobile</TabsTrigger>
               </TabsList>
 
               <TabsContent value="overview" className="space-y-6">
@@ -199,7 +201,7 @@ const Analytics = () => {
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   {/* Platform Performance */}
                   <Card className="shadow-soft border-gray-100">
                     <CardHeader>
@@ -274,6 +276,10 @@ const Analytics = () => {
                     </div>
                   </CardContent>
                 </Card>
+              </TabsContent>
+
+              <TabsContent value="mobile">
+                <MobileAnalyticsDashboard />
               </TabsContent>
             </Tabs>
           </div>

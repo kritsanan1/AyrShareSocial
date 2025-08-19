@@ -5,6 +5,78 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { ayrshareApi } from "./services/ayrshareApi";
 import { insertPostSchema, insertSocialAccountSchema } from "@shared/schema";
 import { z } from "zod";
+import express, { Router } from 'express';
+import crypto from 'crypto';
+
+// Mock functions for session management and Supabase integration (to be implemented)
+async function getUserFromSession(req: express.Request): Promise<any> {
+  // In a real application, you would use session data or JWT to identify the user.
+  // For demonstration, we'll assume a user ID is available in req.user.claims.sub
+  if (req.user && req.user.claims && req.user.claims.sub) {
+    return await storage.getUser(req.user.claims.sub);
+  }
+  return null;
+}
+
+// Placeholder for Supabase service
+class SupabaseTrackingService {
+  private supabaseUrl: string;
+  private supabaseKey: string;
+
+  constructor(url: string, key: string) {
+    this.supabaseUrl = url;
+    this.supabaseKey = key;
+  }
+
+  async trackMobileSession(sessionData: any): Promise<string> {
+    console.log('Tracking session with Supabase:', sessionData);
+    // Replace with actual Supabase insert operation
+    return crypto.randomUUID();
+  }
+
+  async getMobileAnalytics(userId: string, days: number): Promise<any> {
+    console.log(`Fetching mobile analytics for user ${userId} for last ${days} days`);
+    // Replace with actual Supabase query
+    return {
+      totalSessions: 150,
+      mobilePercentage: 65,
+      tabletPercentage: 20,
+      desktopPercentage: 15,
+      avgLoadTime: 2.3,
+      avgSessionDuration: 180,
+      deviceBreakdown: {
+        mobile: 98,
+        tablet: 30,
+        desktop: 22
+      },
+      performanceMetrics: {
+        averageLoadTime: 2.3,
+        averageFCP: 1.8,
+        averageLCP: 3.2,
+        averageCLS: 0.12
+      }
+    };
+  }
+
+  async getLighthouseHistory(userId: string): Promise<any[]> {
+    console.log(`Fetching Lighthouse history for user ${userId}`);
+    // Replace with actual Supabase query
+    return [
+      {
+        id: '1',
+        url: 'https://example.com',
+        device_type: 'mobile',
+        lighthouse_score: 85,
+        viewport_score: 100,
+        tap_targets_score: 90,
+        font_size_score: 95,
+        test_date: new Date().toISOString()
+      }
+    ];
+  }
+}
+
+const router = Router();
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -27,24 +99,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
       // Check if user already has an Ayrshare profile
       if (user.ayrshareProfileKey) {
-        return res.json({ 
+        return res.json({
           profileKey: user.ayrshareProfileKey,
-          message: "Profile already exists" 
+          message: "Profile already exists"
         });
       }
 
       // Create Ayrshare profile with user's name
-      const displayName = user.firstName && user.lastName 
-        ? `${user.firstName} ${user.lastName}` 
+      const displayName = user.firstName && user.lastName
+        ? `${user.firstName} ${user.lastName}`
         : user.email;
-      
+
       const ayrshareResponse = await ayrshareApi.createUserProfile(
         displayName,
         user.profileImageUrl ?? undefined
@@ -53,15 +125,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (ayrshareResponse.status === 'success' && ayrshareResponse.profileKey) {
         // Store the profile key in our database
         await storage.updateUserAyrshareProfile(userId, ayrshareResponse.profileKey);
-        
+
         res.json({
           profileKey: ayrshareResponse.profileKey,
           message: "Profile created successfully"
         });
       } else {
-        res.status(400).json({ 
+        res.status(400).json({
           message: "Failed to create Ayrshare profile",
-          error: ayrshareResponse.error 
+          error: ayrshareResponse.error
         });
       }
     } catch (error) {
@@ -74,7 +146,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       if (!user || !user.ayrshareProfileKey) {
         return res.status(404).json({ message: "User profile not found" });
       }
@@ -90,9 +162,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: "JWT generated successfully"
         });
       } else {
-        res.status(400).json({ 
+        res.status(400).json({
           message: "Failed to generate JWT",
-          error: jwtResponse.error 
+          error: jwtResponse.error
         });
       }
     } catch (error) {
@@ -105,13 +177,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       if (!user || !user.ayrshareProfileKey) {
         return res.json([]); // Return empty array if no profile
       }
 
       const profileResponse = await ayrshareApi.getProfileSocialAccounts(user.ayrshareProfileKey);
-      
+
       if (profileResponse.status === 'success' && profileResponse.profiles) {
         res.json(profileResponse.profiles);
       } else {
@@ -128,13 +200,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       if (!user || !user.ayrshareProfileKey) {
         return res.json([]); // Return empty array if no profile
       }
 
       const profileResponse = await ayrshareApi.getProfileSocialAccounts(user.ayrshareProfileKey);
-      
+
       if (profileResponse.status === 'success' && profileResponse.profiles) {
         res.json(profileResponse.profiles);
       } else {
@@ -149,14 +221,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/social-accounts/sync', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      
+
       // Get profiles from Ayrshare
       const profilesResponse = await ayrshareApi.getProfiles();
-      
+
       if (profilesResponse.status === 'success' && profilesResponse.profiles) {
         // Sync profiles to database
         const syncedAccounts = [];
-        
+
         for (const profile of profilesResponse.profiles) {
           const accountData = {
             userId,
@@ -166,13 +238,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             profileImage: profile.profileImg,
             followerCount: profile.followers || 0,
           };
-          
+
           // Check if account already exists
           const existingAccounts = await storage.getSocialAccounts(userId);
           const existing = existingAccounts.find(
             acc => acc.platform === profile.platform && acc.platformId === profile.platformId
           );
-          
+
           if (existing) {
             const updated = await storage.updateSocialAccount(existing.id, accountData);
             syncedAccounts.push(updated);
@@ -181,7 +253,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             syncedAccounts.push(created);
           }
         }
-        
+
         res.json(syncedAccounts);
       } else {
         res.status(400).json({ message: "Failed to sync social accounts" });
@@ -233,8 +305,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Get user's Ayrshare profile
           const user = await storage.getUser(userId);
           if (!user || !user.ayrshareProfileKey) {
-            return res.status(400).json({ 
-              message: "Please connect your social accounts first" 
+            return res.status(400).json({
+              message: "Please connect your social accounts first"
             });
           }
 
@@ -242,27 +314,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
             post: postData.content,
             platforms: postData.platforms,
             mediaUrls: postData.mediaUrls || undefined,
-            ...(postData.scheduledAt && { 
-              scheduleDate: postData.scheduledAt.toISOString() 
+            ...(postData.scheduledAt && {
+              scheduleDate: postData.scheduledAt.toISOString()
             }),
           };
 
           const ayrshareResponse = await ayrshareApi.postForUser(user.ayrshareProfileKey, ayrshareData);
-          
+
           if (ayrshareResponse.status === 'success') {
             // Update post with Ayrshare ID
             const updatedPost = await storage.updatePost(post.id, {
               ayrsharePostId: ayrshareResponse.id,
               publishedAt: postData.status === 'published' ? new Date() : undefined,
             });
-            
+
             res.json(updatedPost);
           } else {
             // Update post status to failed
             await storage.updatePost(post.id, { status: 'failed' });
-            res.status(400).json({ 
+            res.status(400).json({
               message: "Failed to publish post",
-              errors: ayrshareResponse.errors 
+              errors: ayrshareResponse.errors
             });
           }
         } catch (ayrshareError) {
@@ -284,7 +356,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const postId = req.params.id;
-      
+
       // Verify ownership
       const existingPost = await storage.getPost(postId);
       if (!existingPost || existingPost.userId !== userId) {
@@ -304,7 +376,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const postId = req.params.id;
-      
+
       // Verify ownership
       const existingPost = await storage.getPost(postId);
       if (!existingPost || existingPost.userId !== userId) {
@@ -333,22 +405,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const { startDate, endDate, platforms } = req.query;
-      
+
       // Validate and parse parameters
-      const platformsArray = platforms && typeof platforms === 'string' 
-        ? platforms.split(',').filter(p => p.trim()) 
+      const platformsArray = platforms && typeof platforms === 'string'
+        ? platforms.split(',').filter(p => p.trim())
         : undefined;
-      
+
       const startDateStr = startDate && typeof startDate === 'string' ? startDate : undefined;
       const endDateStr = endDate && typeof endDate === 'string' ? endDate : undefined;
-      
+
       // Get analytics from Ayrshare
       const ayrshareAnalytics = await ayrshareApi.getAnalytics(
         platformsArray,
         startDateStr,
         endDateStr
       );
-      
+
       // Get stored analytics - check if storage.getAnalytics exists
       let storedAnalytics = [];
       if (typeof storage.getAnalytics === 'function') {
@@ -358,7 +430,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           endDateStr ? new Date(endDateStr) : undefined
         );
       }
-      
+
       res.json({
         live: ayrshareAnalytics,
         stored: storedAnalytics,
@@ -388,7 +460,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...req.body,
         userId,
       };
-      
+
       const asset = await storage.createContentAsset(assetData);
       res.json(asset);
     } catch (error) {
@@ -412,23 +484,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/dashboard/stats', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      
+
       // Get basic stats
       const posts = await storage.getPosts(userId, 100);
       const socialAccounts = await storage.getSocialAccounts(userId);
       const scheduledPosts = await storage.getScheduledPosts(userId);
-      
+
       // Calculate stats
       const publishedPosts = posts.filter(p => p.status === 'published');
       const thisMonthPosts = publishedPosts.filter(p => {
         const postDate = new Date(p.createdAt || new Date());
         const now = new Date();
-        return postDate.getMonth() === now.getMonth() && 
+        return postDate.getMonth() === now.getMonth() &&
                postDate.getFullYear() === now.getFullYear();
       });
-      
+
       const totalFollowers = socialAccounts.reduce((sum, acc) => sum + (acc.followerCount || 0), 0);
-      
+
       const stats = {
         postsPublished: thisMonthPosts.length,
         totalEngagement: 0, // This would come from analytics
@@ -436,13 +508,125 @@ export async function registerRoutes(app: Express): Promise<Server> {
         scheduledPosts: scheduledPosts.length,
         connectedAccounts: socialAccounts.length,
       };
-      
+
       res.json(stats);
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);
       res.status(500).json({ message: "Failed to fetch dashboard stats" });
     }
   });
+
+  // Mobile tracking routes
+  router.post('/api/mobile/track-session', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const sessionData = {
+        ...req.body,
+        user_id: user.id
+      };
+
+      // Here you would integrate with Supabase
+      const supabaseService = new SupabaseTrackingService(process.env.SUPABASE_URL!, process.env.SUPABASE_KEY!);
+      const sessionId = await supabaseService.trackMobileSession(sessionData);
+
+      res.json({ success: true, sessionId: sessionId });
+    } catch (error) {
+      console.error('Mobile tracking error:', error);
+      res.status(500).json({ error: 'Failed to track session' });
+    }
+  });
+
+  router.get('/api/mobile/analytics', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const days = parseInt(req.query.days as string) || 30;
+
+      // Integrate with Supabase
+      const supabaseService = new SupabaseTrackingService(process.env.SUPABASE_URL!, process.env.SUPABASE_KEY!);
+      const analytics = await supabaseService.getMobileAnalytics(user.id, days);
+
+      res.json(analytics);
+    } catch (error) {
+      console.error('Analytics fetch error:', error);
+      res.status(500).json({ error: 'Failed to fetch analytics' });
+    }
+  });
+
+  router.post('/api/lighthouse/test', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const { url } = req.body;
+
+      if (!url) {
+        return res.status(400).json({ error: 'URL is required' });
+      }
+
+      // Mock Lighthouse results - replace with actual API integration
+      const lighthouseResults = {
+        score: 85,
+        categories: {
+          performance: { score: 82 },
+          accessibility: { score: 95 },
+          'best-practices': { score: 88 },
+          seo: { score: 90 },
+          pwa: { score: 75 }
+        },
+        audits: {
+          'viewport': { score: 100 },
+          'tap-targets': { score: 90 },
+          'font-size': { score: 95 }
+        },
+        url,
+        timestamp: new Date().toISOString()
+      };
+
+      // Optionally, store these results in Supabase via SupabaseTrackingService
+      // const supabaseService = new SupabaseTrackingService(process.env.SUPABASE_URL!, process.env.SUPABASE_KEY!);
+      // await supabaseService.storeLighthouseResult(userId, url, lighthouseResults);
+
+      res.json(lighthouseResults);
+    } catch (error) {
+      console.error('Lighthouse test error:', error);
+      res.status(500).json({ error: 'Failed to run Lighthouse test' });
+    }
+  });
+
+  router.get('/api/lighthouse/history', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      // Integrate with Supabase to get history
+      const supabaseService = new SupabaseTrackingService(process.env.SUPABASE_URL!, process.env.SUPABASE_KEY!);
+      const history = await supabaseService.getLighthouseHistory(user.id);
+
+      res.json(history);
+    } catch (error) {
+      console.error('Lighthouse history error:', error);
+      res.status(500).json({ error: 'Failed to fetch history' });
+    }
+  });
+
+  // Mount the router with the new API routes
+  app.use(router);
 
   const httpServer = createServer(app);
   return httpServer;

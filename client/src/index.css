@@ -209,10 +209,117 @@
 
 @layer base {
   * {
-    @apply border-border;
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
   }
 
+  /* Mobile-first responsive base styles */
+  html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Touch optimizations */
+  button, 
+  input, 
+  textarea, 
+  select,
+  [role="button"] {
+    min-height: 44px; /* iOS recommended touch target size */
+    min-width: 44px;
+  }
+
+  /* Smooth scrolling for mobile */
+  html {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Responsive typography */
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    font-size: 0.875rem; /* 14px mobile base */
+    line-height: 1.5;
+  }
+
+  @media (min-width: 768px) {
+    body {
+      font-size: 1rem; /* 16px tablet+ */
+    }
+  }
+
+  /* Mobile-optimized form elements */
+  input, 
+  textarea, 
+  select {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+
+  /* Responsive spacing utilities */
+  .mobile-padding {
+    padding: 1rem;
+  }
+
+  @media (min-width: 768px) {
+    .mobile-padding {
+      padding: 1.5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .mobile-padding {
+      padding: 2rem;
+    }
+  }
+
+  /* Touch-friendly button styles */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Mobile navigation optimizations */
+  .mobile-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: white;
+    border-top: 1px solid #e5e7eb;
+    padding: 0.5rem;
+    display: flex;
+    justify-content: space-around;
+  }
+
+  @media (min-width: 768px) {
+    .mobile-nav {
+      display: none;
+    }
+  }
+
+  /* Responsive grid */
+  .responsive-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .responsive-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .responsive-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
   }
 }
