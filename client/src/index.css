@@ -1,0 +1,218 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(40, 14%, 98%); /* cream */
+  --foreground: hsl(210, 25%, 8%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(210, 25%, 8%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(210, 25%, 8%);
+  --primary: hsl(136, 20%, 38%); /* sage */
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(210, 6%, 90%);
+  --secondary-foreground: hsl(210, 25%, 8%);
+  --muted: hsl(210, 6%, 95%);
+  --muted-foreground: hsl(210, 4%, 46%);
+  --accent: hsl(210, 6%, 95%);
+  --accent-foreground: hsl(210, 25%, 8%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(214, 18%, 91%);
+  --input: hsl(214, 18%, 91%);
+  --ring: hsl(136, 20%, 38%); /* sage */
+  --chart-1: hsl(136, 20%, 38%);
+  --chart-2: hsl(217, 34%, 55%);
+  --chart-3: hsl(272, 23%, 56%);
+  --chart-4: hsl(33, 32%, 60%);
+  --chart-5: hsl(350, 22%, 63%);
+  --sidebar-background: hsl(0, 0%, 100%);
+  --sidebar-foreground: hsl(210, 25%, 8%);
+  --sidebar-primary: hsl(136, 20%, 38%);
+  --sidebar-primary-foreground: hsl(0, 0%, 100%);
+  --sidebar-accent: hsl(210, 6%, 95%);
+  --sidebar-accent-foreground: hsl(210, 25%, 8%);
+  --sidebar-border: hsl(214, 18%, 91%);
+  --sidebar-ring: hsl(136, 20%, 38%);
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: Menlo, Monaco, 'Cascadia Code', 'Segoe UI Mono', 'Roboto Mono', 'Oxygen Mono', 'Ubuntu Monospace', 'Source Code Pro', 'Fira Mono', 'Droid Sans Mono', 'Courier New', monospace;
+  --radius: 0.75rem;
+}
+
+.dark {
+  --background: hsl(210, 25%, 8%);
+  --foreground: hsl(210, 6%, 91%);
+  --card: hsl(210, 25%, 10%);
+  --card-foreground: hsl(210, 6%, 91%);
+  --popover: hsl(210, 25%, 8%);
+  --popover-foreground: hsl(210, 6%, 91%);
+  --primary: hsl(136, 20%, 45%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(210, 6%, 15%);
+  --secondary-foreground: hsl(210, 6%, 91%);
+  --muted: hsl(210, 6%, 15%);
+  --muted-foreground: hsl(210, 4%, 60%);
+  --accent: hsl(210, 6%, 15%);
+  --accent-foreground: hsl(210, 6%, 91%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(210, 6%, 20%);
+  --input: hsl(210, 6%, 20%);
+  --ring: hsl(136, 20%, 45%);
+  --chart-1: hsl(136, 20%, 45%);
+  --chart-2: hsl(217, 34%, 65%);
+  --chart-3: hsl(272, 23%, 66%);
+  --chart-4: hsl(33, 32%, 70%);
+  --chart-5: hsl(350, 22%, 73%);
+  --sidebar-background: hsl(210, 25%, 10%);
+  --sidebar-foreground: hsl(210, 6%, 91%);
+  --sidebar-primary: hsl(136, 20%, 45%);
+  --sidebar-primary-foreground: hsl(0, 0%, 100%);
+  --sidebar-accent: hsl(210, 6%, 15%);
+  --sidebar-accent-foreground: hsl(210, 6%, 91%);
+  --sidebar-border: hsl(210, 6%, 20%);
+  --sidebar-ring: hsl(136, 20%, 45%);
+}
+
+/* Custom color utilities */
+.text-sage {
+  color: hsl(136, 20%, 38%);
+}
+
+.bg-sage {
+  background-color: hsl(136, 20%, 38%);
+}
+
+.border-sage {
+  border-color: hsl(136, 20%, 38%);
+}
+
+.hover\:bg-sage\/90:hover {
+  background-color: hsl(136, 20%, 38%, 0.9);
+}
+
+.hover\:text-sage:hover {
+  color: hsl(136, 20%, 38%);
+}
+
+.hover\:border-sage:hover {
+  border-color: hsl(136, 20%, 38%);
+}
+
+.bg-sage\/10 {
+  background-color: hsl(136, 20%, 38%, 0.1);
+}
+
+.bg-sage\/5 {
+  background-color: hsl(136, 20%, 38%, 0.05);
+}
+
+.border-sage\/20 {
+  border-color: hsl(136, 20%, 38%, 0.2);
+}
+
+.bg-cream {
+  background-color: hsl(40, 14%, 98%);
+}
+
+/* Warm color utilities */
+.text-warm-blue {
+  color: hsl(217, 34%, 55%);
+}
+
+.bg-warm-blue {
+  background-color: hsl(217, 34%, 55%);
+}
+
+.bg-warm-blue\/10 {
+  background-color: hsl(217, 34%, 55%, 0.1);
+}
+
+.text-dusty-purple {
+  color: hsl(272, 23%, 56%);
+}
+
+.bg-dusty-purple\/10 {
+  background-color: hsl(272, 23%, 56%, 0.1);
+}
+
+.text-warm-amber {
+  color: hsl(33, 32%, 60%);
+}
+
+.bg-warm-amber\/10 {
+  background-color: hsl(33, 32%, 60%, 0.1);
+}
+
+.text-muted-rose {
+  color: hsl(350, 22%, 63%);
+}
+
+.text-soft-emerald {
+  color: hsl(136, 30%, 48%);
+}
+
+/* Custom shadows */
+.shadow-soft {
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.08);
+}
+
+.shadow-medium {
+  box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.12);
+}
+
+.shadow-strong {
+  box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.16);
+}
+
+/* Custom scrollbar */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(210, 6%, 82%) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: hsl(210, 6%, 82%);
+  border-radius: 3px;
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
